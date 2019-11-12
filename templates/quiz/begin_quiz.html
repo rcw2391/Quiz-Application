@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+{% block body_block %}
+    <div id="start_quiz_display">
+            {% if time_limit == 0 %}
+            <h4>This quiz does not have a time limit.</h4>
+            {% else %}
+            <h4>You have {{ time_limit }} minutes to complete this quiz.</h4>
+            {% endif %}
+            <h4>Use the numbers at the bottom of the page to quickly navigate between questions.</h4>
+            <h4>An answer to a question will not be saved unless you click the next button.</h4>
+            <h4>Click begin when you are ready.</h4>
+            <button class="submit_button" onclick="beginQuiz()"><a href="{% url 'quiz:take_quiz' quiz_id=quiz.name %}">Begin</span></button>
+        </div>
+{% endblock %}

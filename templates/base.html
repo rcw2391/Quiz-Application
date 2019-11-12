@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+{% load staticfiles %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ title }}</title>
+    <link rel="stylesheet" href="{% static 'css/main.css' %}">
+    {% block head_block %}
+    {% endblock %}
+</head>
+<body>
+    <nav>
+        <div class="nav-container">
+            <div class="main-nav">
+                <ul>
+                    <li class="{% if isActive == 'home' %}active{% endif %}"><a href="{% url 'index' %}">Home</a></li
+                    >{% if is_logged_in %}<li class="{% if isActive == 'dashboard' %}active{% endif %}"><a href="{% url 'quiz:dashboard' %}">Dashboard</a></li
+                    ><li class="auth-nav {% if isActive == 'logout' %}active{% endif %}"><a href="{% url 'quiz:user_logout' %}">Logout</a></li
+                    >{% else %}<li class="auth-nav {% if isActive == 'register' %}active{% endif %}"><a href="{% url 'quiz:user_register' %}">Register</a></li
+                    ><li class="auth-nav {% if isActive == 'login' %}active{% endif %}"><a href="{% url 'quiz:user_login' %}">Login</a></li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="body_container">
+    {% block body_block %}
+    {% endblock %}
+    </div>
+</body>
+</html>

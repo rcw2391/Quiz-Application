@@ -1,0 +1,26 @@
+{% extends 'base.html'%}
+{% block body_block %}
+    <h1>View Submissions</h1>
+    {% if score_list_len == 0 %}
+        <h4>This user has not taken this quiz yet.</h4>
+    {% endif %}
+    {% if is_user_list_information %}
+    <button class="submit_button"><a href="{% url 'quiz:user_list_information' quiz_id=quiz_id %}">Go Back</a></button>
+    {% else %}
+    <button class="submit_button"><a href="{% url 'quiz:dashboard' %}">Go Back</a></button>
+    {% endif %}
+    <form name="edit_question_form" method="POST" action="{% url 'quiz:view_submissions' quiz_id=quiz_id user_id=user_id %}">
+        {% csrf_token %}
+        {% for score in score_list %}
+        <div class="score_list">
+            <label for="score{{ forloop.counter0 }}"><strong>{{ forloop.counter }}.</strong></label>
+            <input type="radio" name="score_id" value="{{ score.id }}"
+                id="score{{ forloop.counter0 }}">{{ score.score }} | {{ score.created_date }}<br>
+        </div>
+        <hr class="score_list_hr">
+        {% endfor %}
+        {% if score_list_len > 0 %}
+        <button class="submit_button" onclick="onSubmit()"><span>Submit</span></button>
+        {% endif %}
+    </form>
+{% endblock %}

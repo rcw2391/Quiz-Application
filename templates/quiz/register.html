@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+    {% block body_block %}
+        {% if isError %}
+            <div class="error">
+                <h4>{{ error }}</h4>
+            </div>
+        {% endif %}
+    <div class="login_form_container">
+        <form action="{% url 'quiz:user_register' %}" method="post">
+            {% csrf_token %}
+            {{ form }}
+            <button type="submit" class="submit_button"><span>Submit</span></button>
+        </form>
+    </div>
+    {% endblock %}

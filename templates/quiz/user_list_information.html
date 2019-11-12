@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% block body_block %}
+<h1>{{ quiz.name }} User List</h1>
+<button class="submit_button"><a href="{% url 'quiz:dashboard' %}">Go Back</a></button>
+<h3 class="quiz_owner_dashboard_title">Users</h3>
+<div class="quiz_owner_dashboard_title_container">
+    <ul>
+        <li class="quiz_owner_dashboard_item_name">Name</li>
+        <li class="quiz_owner_dashboard_item_repeatable">Score</li>
+        <li class="quiz_owner_dashboard_item_edit">Remove</li>
+        <li class="quiz_owner_dashboard_item_user_list">View Submission(s)</li>
+    </ul>
+</div>
+<div class="quiz_owner_dashboard">
+    {% if quiz_user_len < 1 %}
+    <h3>You have not added any users, click <a href="{% url 'quiz:add_user_to_quiz' quiz_id=quiz.name %}">here</a> to add one.</h3>
+    {% endif %}
+    {% for user in quiz_users %}
+    <div class="quiz_owner_dashboard_item">
+        <ul class="{% if forloop.counter0|divisibleby:2 %}even{% else %}odd{% endif %}">
+            <li class="quiz_owner_dashboard_item_name">{{ user.user.username }}</li>
+            <li class="quiz_owner_dashboard_item_repeatable">#</li>
+            <li class="quiz_owner_dashboard_item_edit"><a href="{% url 'quiz:edit_quiz' quiz_id=quiz.name %}">Remove</a>
+            </li>
+            <li class="quiz_owner_dashboard_item_user_list"><a 
+                href="{% url 'quiz:view_submissions' quiz_id=quiz.name user_id=user.user.userprofile.id %}">View Submission(s)</a></li>
+        </ul>
+        <hr>
+    </div>
+    {% endfor %}
+    {% if quiz_user_len > 0 %}
+    <h3 class="quiz_owner_dashboard_new_quiz"><a href="{% url 'quiz:add_user_to_quiz' quiz_id=quiz.name %}">+Add User</a></h3>
+    {% endif %}
+</div>
+{% endblock %}

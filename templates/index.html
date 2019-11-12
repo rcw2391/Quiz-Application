@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+    {% block body_block %}
+        {% if is_logged_in %}
+            <h1>Welcome to the Quiz App, {{ user }}!</h1>
+            <br>
+            <h4>Go to the dashboard to make or take a quiz!</h4>
+        {% else %}
+            <h1>Welcome to the Quiz App!</h1>
+            <br>
+            <h4>To begin, click register in the top right hand corner. Once you have an account, you may begin creating and taking
+            quizzes!</h4>            
+        {% endif %}
+    {% endblock %}

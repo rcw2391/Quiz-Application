@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+    {% load staticfiles %}
+    {% block head_block %}
+    <script type="text/javascript" src="{% static 'javascript/time_limit.js' %}"></script>
+    {% endblock %}
+    {% block body_block %}
+        <h1>Editing {{ quiz.name }}</h1>
+        {% if isError %}
+            <div class="error">
+                <h4>{{ error }}</h4>
+            </div>
+        {% endif %}
+        {% if isSuccess %}
+            <div class="success">
+                <h4>{{ success }}</h4>
+            </div>
+        {% endif %}
+        <button class="submit_button"><a href="{% url 'quiz:dashboard' %}">Go Back</a></button>
+        <div class="edit_quiz_form_container">
+            <form action="{% url 'quiz:edit_quiz' quiz_id=quiz.name %}" method="post">
+                {% csrf_token %}
+                <label for="quiz_name">Name:</label>
+                <input type="text" name="quiz_name" id="quiz_name" value="{{ quiz.name }}">
+                <label for="time_limit_input">Time limit:</label>
+                <input type="number" id="time_limit_input" name="time_limit_input" value="{{ quiz.time_limit }}" oninput="checkTime()">
+                <h6><em>Enter 0 for unlimited. 120 is max.</em></h6>
+                <label for="is_repeatable_input">Repeatable?</label>
+                <input type="checkbox" name="is_repeatable_input" id="is_repeatable_input"
+                    {% if quiz.is_repeatable %}checked="checked"{% endif %}>
+                <label for="edit_quiz_dropdown">Action:</label>
+                <select id="edit_quiz_dropdown" name="action_dropdown">
+                    <option value="nothing">Do Nothing</option>
+                    <option value="change_name">Change Name</option>
+                    <option value="change_time_limit">Change Time Limit</option>
+                    <option value="add_question">Add Question</option>
+                    <option value="delete_question">Delete Question</option>
+                    <option value="edit_question">Edit Question</option>
+                    <option value="delete_quiz">Delete Quiz</option>
+                    <option value="change_repeatable">Change Repeatable</option>
+                </select>
+                <button type="submit" class="submit_button"><span>Submit</span></button>                
+            </form>
+        </div>        
+    {% endblock %}

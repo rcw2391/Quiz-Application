@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+    {%block body_block %}
+        <h1>Delete Question</h1>
+        <h4>Select the check box for the question(s) you would like to delete. 
+            When you are finished click submit at the bottom of the page.</h4>
+        <button class="submit_button"><a href="{% url 'quiz:edit_quiz' quiz_id=quiz.name %}">Go Back</a></button>
+        <div class="delete_question_inputs">
+            <form action="{% url 'quiz:delete_question' quiz_id=quiz.name %}" method="POST" name="delete_question_form">
+                {% csrf_token %}
+                {% for question in question_list %}
+                    <label for="question{{ forloop.counter0 }}"><strong>{{ forloop.counter }}.</strong></label>
+                    <input type="checkbox" name="question{{ forloop.counter0 }}" value="{{ question.id }}" 
+                        id="question{{ forloop.counter0 }}">{{ question.text }}<br><hr>
+                {% endfor %}
+                <button class="submit_button"><span>Submit</span></button>
+            </form>
+        </div>
+    {% endblock %}

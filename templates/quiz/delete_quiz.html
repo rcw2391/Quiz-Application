@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+    {% block body_block %}
+        <h1>Delete Quiz</h1>
+        {% if isError %}
+            <div class="error">
+                <h4>{{ error }}</h4>
+            </div>
+        {% endif %}
+        <button class="submit_button"><a href="{% url 'quiz:edit_quiz' quiz_id=quiz.name %}">Go Back</a></button>
+        <div class="delete_quiz_form_container">
+            <form action="{% url 'quiz:delete_quiz' quiz_id=quiz.name %}" method=POST>
+                {% csrf_token %}
+                <label for="delete_quiz_input">Type DELETE in the input box to confirm.</label>
+                <input type="text" id="delete_quiz_input" name="delete_quiz_input">
+                <button type="submit" class="submit_button"><span>Submit</span></button>
+            </form>
+        </div>
+    {% endblock %}

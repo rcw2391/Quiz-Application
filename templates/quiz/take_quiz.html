@@ -1,0 +1,269 @@
+{% extends 'base.html' %}
+    {% block body_block %}
+        <div id="quiz_timer_container">
+            <h4 id="quiz_timer"></h4>
+        </div>
+
+        <div id="quiz_display_container"></div>
+        <div id="next_button_container">
+            <button id="quiz_submit" type="button" class="submit_button" onclick="nextQuestion()"><span>Next Question</span></button>
+        </div>
+
+        <div class="question_navigator">
+            <ul>
+                {% for item in questions %}
+                <li><a id="question_link{{ forloop.counter0 }}" onclick="displayQuestion({{ forloop.counter }})">{{ forloop.counter }}</a></li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <form name="answer_input_form" method="dialog" action="{% url 'quiz:take_quiz' quiz_id=quiz_id %}">
+            {% csrf_token %}
+        </form>
+
+        <script>
+            questionsArr = {{ questions|safe }};
+            console.log(questionsArr);
+            let minutes = 0;
+            let hours = {{ time_limit }} / 60;
+            let selectedQuestion = 1;
+            let isSelectAll;
+            let isFromLastPage = false;
+            let quiz_submit = document.getElementById('quiz_submit');
+            if(hours < 1){
+                hours = 0;
+                minutes = {{ time_limit }};
+            } else {
+                if(hours===2){
+                    minutes = 0;
+                } else if(hours >= 1){
+                    minutes = {{ time_limit }} - 60;
+                }
+            }
+            let seconds = 0;
+
+            startTimer = () => {
+                setInterval(() => {
+                    let hoursDisplay;
+                    let minutesDisplay;
+                    let secondsDisplay;
+                    if(seconds===0){
+                        if(minutes===0){
+                            if(hours===0){
+                                clearTimeout();
+                                endQuiz();
+                            } else {
+                                hours -= 1;
+                                minutes = 59;
+                                seconds = 59;
+                            }
+                        } else {
+                            minutes -= 1;
+                            seconds = 59;
+                        }
+                    } else {
+                        seconds -= 1;
+                    }
+                    hoursDisplay = '0'+hours;
+                    if(minutes < 10){
+                        minutesDisplay = '0'+minutes;
+                    } else {
+                        minutesDisplay = ''+minutes;
+                    }
+                    if(seconds < 10){
+                        secondsDisplay = '0'+seconds;
+                    } else {
+                        secondsDisplay = ''+seconds;
+                    }
+                    document.getElementById('quiz_timer').innerHTML = hoursDisplay + ':' + minutesDisplay + ':' + secondsDisplay;
+                }, 1000);
+            }
+
+            endQuiz = () => {
+                for(let i=0; i < questionsArr.length; i++){
+                    if(!document.getElementById('answer_input' + i)){
+                        answerInput = document.createElement('input');
+                        answerInput.setAttribute('type', 'hidden');
+                        answerInput.setAttribute('id', 'answer_input' + i);
+                        answerInput.setAttribute('name', 'answer_input' + i);
+                        question = '*QUESTION*' + questionsArr[i].question;
+                        answer = '*ANSWER*';
+                        answerInput.setAttribute('value', question + answer);
+                        document.forms['answer_input_form'].appendChild(answerInput);
+                    }
+                }
+                
+                document.forms['answer_input_form'].setAttribute('method', 'POST');
+                document.forms['answer_input_form'].submit();
+            };
+
+            displayQuestion = (link) => {
+                let number = link - 1;
+                selectedQuestion = link;
+                let quizDisplay = document.getElementById('quiz_display_container');
+                while(quizDisplay.firstChild){
+                    quizDisplay.removeChild(quizDisplay.firstChild)
+                }
+
+                if(selectedQuestion - 1 === questionsArr.length){
+                    quiz_submit.setAttribute('style', 'visibility: hidden;');
+                    
+                    newHeader = document.createElement('h4');
+                    newHeader.innerHTML = 'Would you like to submit your quiz?'
+
+                    quizDisplay.appendChild(newHeader);
+
+                    newSubmitButton = document.createElement('button');
+                    newSubmitButton.setAttribute('type', 'submit');
+                    newSubmitButton.setAttribute('class', 'submit_button');
+                    newSubmitButton.setAttribute('id', 'form_submit_button');
+                    newSubmitButton.innerHTML = '<span>Submit Quiz</span>';
+
+                    document.forms['answer_input_form'].appendChild(newSubmitButton);
+                } else {
+                    if(questionsArr[number].is_select_all === 0){
+                        isSelectAll = false;
+                    } else {
+                        isSelectAll = true;
+                    }
+                    
+                    if(document.getElementById('form_submit_button')){
+                        document.getElementById('form_submit_button').remove();
+                        quiz_submit.setAttribute('style', 'visibility: visible;');
+                    }
+                    
+                    newQuestionHeader = document.createElement('h4');
+                    newQuestionHeader.innerHTML = '#' + (number + 1);
+
+                    newQuestion = document.createElement('h5');
+                    newQuestion.setAttribute('id', 'question' + number);
+                    newQuestion.innerHTML = questionsArr[number].question;
+
+                    quizDisplay.appendChild(newQuestionHeader);
+                    quizDisplay.appendChild(newQuestion);
+
+                    if (isSelectAll){                    
+                        let radioDiv = document.createElement('div');
+                        radioDiv.setAttribute('class', 'quiz_radio_div');
+                        quizDisplay.appendChild(radioDiv);
+
+                        selectAll = document.createElement('h5');
+                        selectAll.innerHTML = 'Select all that apply.'
+                        radioDiv.appendChild(selectAll);
+
+                        let radioUL = document.createElement('ul');
+                        radioDiv.appendChild(radioUL);
+
+                        for(let i=0; i < questionsArr[number].answers.length; i++){
+                            newLabel = document.createElement('label');
+                            newLabel.setAttribute('for', 'answer' + i);
+                            newLabel.innerHTML = questionsArr[number].answers[i];
+                            newInput = document.createElement('input');
+                            newInput.setAttribute('type', 'checkbox');
+                            newInput.setAttribute('id', 'answer' + i);
+                            newInput.setAttribute('name', 'answer');
+                            newInput.setAttribute('value', questionsArr[number].answers[i]);
+                            if(document.getElementById('answer_input' + (selectedQuestion - 1))){
+                                answerInput = document.getElementById('answer_input' + (selectedQuestion - 1));
+                                selectedAnswers = answerInput.value.split('*ENDANSWER*');
+                                for(let k=0; k < selectedAnswers.length; k++){
+                                    if(selectedAnswers[k]===questionsArr[number].answers[i]){
+                                        newInput.setAttribute('checked', 'checked');
+                                    }
+                                }
+                            }
+                            newLI = document.createElement('li');
+                            radioUL.appendChild(newLI);
+                            newLI.appendChild(newInput);        
+                            newLI.appendChild(newLabel)
+                        }         
+                        
+                    } else {
+                        let radioDiv = document.createElement('div');
+                        radioDiv.setAttribute('class', 'quiz_radio_div');
+                        quizDisplay.appendChild(radioDiv);
+
+                        let radioUL = document.createElement('ul');
+                        radioDiv.appendChild(radioUL);
+
+                        for(let i=0; i < questionsArr[number].answers.length; i++){
+                            newLabel = document.createElement('label');
+                            newLabel.setAttribute('for', 'answer' + i);
+                            newLabel.innerHTML = questionsArr[number].answers[i];
+                            newInput = document.createElement('input');
+                            newInput.setAttribute('type', 'radio');
+                            newInput.setAttribute('id', 'answer' + i);
+                            newInput.setAttribute('name', 'answer');
+                            newInput.setAttribute('value', questionsArr[number].answers[i]);
+                            if(document.getElementById('answer_input' + (selectedQuestion - 1))){
+                                answerInput = document.getElementById('answer_input' + (selectedQuestion - 1));
+                                if(answerInput.value===questionsArr[number].answers[i]){
+                                        newInput.setAttribute('checked', 'checked');
+                                }
+                            }
+                            newLI = document.createElement('li');
+                            radioUL.appendChild(newLI);
+                            newLI.appendChild(newInput);        
+                            newLI.appendChild(newLabel)
+                        }    
+                    }
+                }
+
+                
+            };
+
+            nextQuestion = () => {
+                let answer = '';
+                let answerInput;
+                
+                if(document.getElementById('answer_input' + (selectedQuestion - 1))){
+                    answerInput = document.getElementById('answer_input' + (selectedQuestion - 1));
+                } else {
+                    answerInput = document.createElement('input');
+                    answerInput.setAttribute('type', 'hidden');
+                    answerInput.setAttribute('name', 'answer_input' + (selectedQuestion - 1));
+                    answerInput.setAttribute('id', 'answer_input' + (selectedQuestion - 1));
+                    document.forms['answer_input_form'].appendChild(answerInput);
+                }
+
+                if(isSelectAll){
+                    question = '*QUESTION*' + document.getElementById('question' + (selectedQuestion - 1)).innerHTML;
+                    for(let i=0; i < questionsArr[selectedQuestion - 1].answers.length; i++){
+                        if (document.getElementById('answer' + i).checked) {
+                            answer += '*ANSWER*' + document.getElementById('answer' + i).value;
+                            questionLink = document.getElementById('question_link' + (selectedQuestion - 1));
+                            questionLink.setAttribute('style', 'color: blue;');
+                        }
+                    }
+                    if(!answer){
+                        answer = '*ANSWER*';
+                    }
+                } else {
+                    question = '*QUESTION*' + document.getElementById('question' + (selectedQuestion - 1)).innerHTML;
+                    for(let i=0; i < questionsArr[selectedQuestion - 1].answers.length; i++){
+                        if (document.getElementById('answer' + i).checked) {
+                            answer = '*ANSWER*' + document.getElementById('answer' + i).value;
+                            questionLink = document.getElementById('question_link' + (selectedQuestion - 1));
+                            questionLink.setAttribute('style', 'color: blue;');
+                        }
+                    }
+                    if(!answer){
+                        answer = '*ANSWER*';
+                    }
+                }
+
+                answerInput.value = question+answer;
+                if(selectedQuestion === questionsArr.length){
+                    submitButton = document.getElementById('quiz_submit');
+                    submitButton.setAttribute('type', 'submit');
+                    document.forms['answer_input_form'].setAttribute('method', 'post');
+                }
+                displayQuestion(selectedQuestion+1);
+            }
+
+            if({{ time_limit }} !== 0){
+                startTimer();
+            }
+            displayQuestion(1);
+        </script>
+    {% endblock %}

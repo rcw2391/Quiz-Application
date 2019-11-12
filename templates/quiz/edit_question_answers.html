@@ -1,0 +1,107 @@
+{% extends 'base.html' %}
+{% load staticfiles %}
+{% block head_block %}
+    <script type="text/javascript" src="{% static 'javascript/edit_question.js' %}"></script>
+{% endblock %}
+    {%block body_block %}
+        <h1>Edit Question</h1>
+        <h4>Delete will override all other actions!</h4>
+        {% if is_question_error %}
+            <div class="error">
+                <h4>{{ question_error }}</h4>
+            </div>
+        {% endif %}
+        {% if is_correct_answer_error %}
+            <div class="error">
+                <h4>{{ correct_answer_error }}</h4>
+            </div>
+        {% endif %}
+        {% if is_answer_error %}
+            <div class="error">
+                <h4>{{ answer_error }}</h4>
+            </div>
+        {% endif %}
+        {%if is_too_many_error %}
+            <div class="error">
+                <h4>{{ too_many_error }}</h4>
+            </div>
+        {% endif %}
+        <button class="submit_button"><a href="{% url 'quiz:edit_question_main' quiz_id=quiz.name %}">Go Back</a></button>
+        <div class="edit_question_form_container">
+            <form action="{% url 'quiz:edit_question' question_id=question_id %}" method="POST" name="edit_question_form">
+                {% csrf_token %}
+                <label for="question_text" id="question_text_label">Question:</label>
+                <textarea id="question_text" name="question_text" rows="3">{{ question }}</textarea>
+                {% for item in change_correct_answers_list %}
+                <label for="correct_answer{{ forloop.counter0 }}">Correct Answer #{{ forloop.counter }}</label>
+                <input type="text" id="correct_answer{{ forloop.counter0 }}" name="correct_answer{{ forloop.counter0 }}"
+                    value="{{ item.answer.text }}">
+                <div class="edit_question_radio_container">
+                    <label for="delete_correct_answer{{ forloop.counter0 }}">Delete: </label>
+                    <input type="radio" id="delete_correct_answer{{ forloop.counter0 }}" name="delete_correct_answer{{ forloop.counter0 }}"
+                        value="0" {% if item.change != 2 %}checked="checked"{% endif %}>No
+                    <input type="radio" id="delete_correct_answer{{ forloop.counter0 }}" name="delete_correct_answer{{ forloop.counter0 }}"
+                        value="1" {% if item.change == 2 %}checked="checked"{% endif %}>Yes<br>
+                    <label for="change_correct_answer{{ forloop.counter0 }}">Change to Incorrect:</label>
+                    <input type="radio" id="change_correct_answer{{ forloop.counter0 }}" name="change_correct_answer{{ forloop.counter0 }}"
+                        value="0" checked="checked" {% if item.change != 1 %}checked="checked"{% endif %}>No
+                    <input type="radio" id="change_correct_answer{{ forloop.counter0 }}" name="change_correct_answer{{ forloop.counter0 }}"
+                        value="1" {% if item.change == 1 %}checked="checked"{% endif %}>Yes
+                </div>
+                {% endfor %}
+                {% for item in change_incorrect_answers_list %}
+                    <label for="incorrect_answer{{ forloop.counter0 }}">Incorrect Answer #{{ forloop.counter }}</label>
+                    <input type="text" id="incorrect_answer{{ forloop.counter0 }}" name="incorrect_answer{{ forloop.counter0 }}"
+                        value="{{ item.answer.text }}">
+                    <div class="edit_question_radio_container">
+                        <label for="delete_incorrect_answer{{ forloop.counter0 }}">Delete: </label>
+                        <input type="radio" id="delete_incorrect_answer{{ forloop.counter0 }}" name="delete_incorrect_answer{{ forloop.counter0 }}"
+                            value="0" {% if item.change != 2 %}checked="checked"{% endif %}>No
+                        <input type="radio" id="delete_incorrect_answer{{ forloop.counter0 }}" name="delete_incorrect_answer{{ forloop.counter0 }}"
+                            value="1" {% if item.change == 2 %}checked="checked"{% endif %}>Yes<br>
+                        <label for="change_incorrect_answer{{ forloop.counter0 }}">Change to Correct:</label>
+                        <input type="radio" id="change_incorrect_answer{{ forloop.counter0 }}" name="change_incorrect_answer{{ forloop.counter0 }}"
+                            value="0" {% if item.change != 1 %}checked="checked"{% endif %}>No
+                        <input type="radio" id="change_incorrect_answer{{ forloop.counter0 }}" name="change_incorrect_answer{{ forloop.counter0 }}"
+                            value="1" {% if item.change == 1 %}checked="checked"{% endif %}>Yes
+                    </div>
+                {% endfor %}
+                <div class="edit_question_radio_container">
+                    <hr>
+                    <label for="add_answer_radio">Add Answers:</label>
+                    <input type="radio" id="add_answer_radio" name="add_question_radio" value="0" {% if not is_new %}checked="checked"{% endif %}
+                        onclick="removeAddAnswer()">No
+                    <input type="radio" id="add_answer_radio" name="add_question_radio" value="1" onclick="addAnswer()"
+                        {% if is_new %}checked="checked"{% endif %}>Yes
+                </div>
+                {% if is_new %}
+                <script>
+                    is_Added = true;
+                </script>
+                <div id="new_answer_div">
+                    <label for="answer_quantity_input">How Many?</label>
+                    <input type="number" id="answer_quantity_input" name="answer_quantity_input" oninput="numberInput()"
+                        value="{{ number_of_new_answers }}">
+                    <div id="new_answer_inputs_div">
+                        {% for item in incorrect_new_answers_list %}
+                            <label for="new_answer{{ forloop.counter0 }}">New Answer #{{ forloop.counter }}</label>
+                            <input type="text" id="new_answer{{ forloop.counter0 }}" name="new_answer{{ forloop.counter0 }}"
+                                value="{{ item.text }}">
+                            <label for="new_answer_checkbox{{ forloop.counter0 }}">Correct:</label>
+                            <input type="checkbox" id="new_answer_checkbox{{ forloop.counter0 }}" name="new_answer_checkbox{{ forloop.counter0 }}">
+                        {% endfor %}
+                        {% for item in correct_new_answers_list %}
+                            <label for="new_answer{{ forloop.counter0 }}">New Answer #{{ forloop.counter }}</label>
+                            <input type="text" id="new_answer{{ forloop.counter0 }}" name="new_answer{{ forloop.counter0 }}"
+                                value="{{ item.text }}">
+                            <label for="new_answer_checkbox{{ forloop.counter0 }}">Correct:</label>
+                            <input type="checkbox" id="new_answer_checkbox{{ forloop.counter0 }}" name="new_answer_checkbox{{ forloop.counter0 }}"
+                                checked="checked">
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+                <button type="submit" class="submit_button" id="submit_button"><span>Submit</span></button>
+            </form>
+        </div>     
+    {% endblock %}

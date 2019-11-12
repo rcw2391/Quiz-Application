@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+    {% block body_block %}
+        <h1>Welcome to the Dashboard, {{ username }}!</h1>
+        <h3 class="quiz_owner_dashboard_title">Created Quizzes</h3>
+        <div class="quiz_owner_dashboard_title_container">
+            <ul>
+                <li class="quiz_owner_dashboard_item_name">Name</li>
+                <li class="quiz_owner_dashboard_item_repeatable">Repeatable</li>
+                <li class="quiz_owner_dashboard_item_edit">Edit</li>
+                <li class="quiz_owner_dashboard_item_user_list">User List Information</li>
+            </ul>
+        </div>
+        <div class="quiz_owner_dashboard">
+            {% if quiz_owner_list_len < 1 %}
+                <h3>You have not created any quizzes, click <a href="{% url 'quiz:new_quiz' %}">here</a> to create one.</h3>
+            {% endif %}
+            {% for quiz in quiz_owner_list%}
+            <div class="quiz_owner_dashboard_item">
+                <ul class="{% if forloop.counter0|divisibleby:2 %}even{% else %}odd{% endif %}">
+                    <li class="quiz_owner_dashboard_item_name">{{ quiz.name }}</li>
+                    <li class="quiz_owner_dashboard_item_repeatable">{% if quiz.is_repeatable %}Yes{% else %}No{% endif %}</li>
+                    <li class="quiz_owner_dashboard_item_edit"><a href="{% url 'quiz:edit_quiz' quiz_id=quiz.name %}">Edit</a></li>
+                    <li class="quiz_owner_dashboard_item_user_list"><a href="{% url 'quiz:user_list_information' quiz_id=quiz.name %}"
+                        >User List Information</a></li>
+                </ul>
+                <hr>
+            </div>
+            {% endfor %}
+            {% if quiz_owner_list_len > 0 %}
+            <h3 class="quiz_owner_dashboard_new_quiz"><a href="{% url 'quiz:new_quiz' %}">+New Quiz</a></h3>
+            {% endif %}
+        </div>
+        <br>
+        <hr>
+        <br>
+        <h3 class="assigned_quiz_dashboard_title">Assigned Quizzes</h3>
+        <div class="assigned_quiz_dashboard_title_container">
+            <ul>
+                <li class="assigned_quiz_dashboard_item_name">Quiz Name</li>
+                <li class="assinged_quiz_dashboard_item_repeatable">Repeatable</li>
+                <li class="assigned_quiz_dashboard_item_recent">Most Recent</li>
+                <li class="assigned_quiz_dashboard_item_best">Best</li>
+                <li class="assigned_quiz_dashboard_item_submission">View Submission</li>
+            </ul>
+        </div>
+        <div class="assigned_quiz_dashboard">
+            {% if quiz_member_list_len < 1 %}
+            <h3>You do not have any assigned quizzes.</h3>
+            {% endif %}
+            {% for item in detailed_quiz_member_list%}
+            <div class="assigned_quiz_dashboard_item">
+                <ul class="{% if forloop.counter0|divisibleby:2 %}even{% else %}odd{% endif %}">
+                    {% if item.can_take_quiz %}
+                    <li class="quiz_owner_dashboard_item_name"><a href="{% url 'quiz:begin_quiz' quiz_id=item.quiz.name %}"
+                        >{{ item.quiz.name }}</a></li>
+                    {% else %}
+                    <li class="quiz_owner_dashboard_item_name">{{ item.quiz.name }}</li>
+                    {% endif %}
+                    <li class="quiz_owner_dashboard_item_repeatable">{% if item.quiz.is_repeatable %}Yes{% else %}No{% endif %}</li>
+                    <li class="assigned_quiz_dashboard_item_recent">{{ item.score_recent }}</li>
+                    <li class="assigned_quiz_dashboard_item_best">{{ item.score_best }}</li>
+                    <li class="assigned_quiz_dashboard_item_submission"><a
+                            href="{% url 'quiz:view_submissions' quiz_id=item.quiz.name user_id=user_id %}">View Submissions</a></li>
+                </ul>
+                <hr>
+            </div>
+            {% endfor %}
+        </div>
+    {% endblock %}

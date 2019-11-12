@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% load staticfiles %}
+    {% block head_block %}
+        <script type="text/javascript" src="{% static 'javascript/time_limit.js' %}"></script>
+    {% endblock %}
+    {% block body_block %}
+        <h1>New Quiz</h1>
+        <button class="submit_button"><a href="{% url 'quiz:dashboard' %}">Go Back</a></button>
+        {% if isError %}
+            <div class="error">
+                <h4>{{ error }}</h4>
+            </div>
+        {% endif %}
+        <div class="new_quiz_form_container">
+            <form action="{% url 'quiz:new_quiz' %}" method="POST">
+                {% csrf_token %}
+                <label for="name_input">Name:</label>
+                <input id="name_input" name="name_input" type="text" value="{{ name_value }}">
+                <label for="time_limit_input">Time limit in minutes:</label>
+                <input type="number" id="time_limit_input" name="time_limit_input" value="{{ time_limit }}" oninput="checkTime()">
+                <h6><em>Enter 0 for unlimited. 120 is max.</em></h6>
+                <div class="new_quiz_radio_container">
+                    <label for="is_repeatable_radio">Is this quiz repeatable?</label>
+                    <input type="radio" name="is_repeatable" value="0" checked="checked">No
+                    <input type="radio" name="is_repeatable" value="1">Yes
+                </div>                
+                <button type="submit" class="submit_button"><span>Submit</span></button>
+            </form>
+        </div>        
+    {% endblock %}

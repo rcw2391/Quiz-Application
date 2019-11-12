@@ -1,0 +1,168 @@
+{% extends 'base.html' %}
+    {% load staticfiles %}
+    {% block head_block %}
+    <script type="text/javascript">
+        let question = '';
+        let numberOfAnswers = 0;
+        let numberOfCorrectAnswers = 0;
+        let isSelected;
+        let correctAnswers = {{ correct_answers|safe }};
+        let incorrectAnswers = {{ incorrect_answers|safe }};
+        if ({{ is_submitted|lower }}){
+            if({{ number_of_correct_answers }} > 1){
+                isSelected = true;
+                addNumberCorrect();
+            } else {
+                isSelected = false;
+            }    
+        }
+        let isQuestion = true;
+
+        numberInput = () => {
+            input = document.getElementById('number_of_answers_input').value;
+            if (input.length > 1) {
+                document.getElementById('number_of_answers_input').value = input[1];
+            }
+        };
+
+        addNumberCorrect = () => {
+            if(!isSelected){
+                let newInput = document.createElement('input');
+                let newLabel = document.createElement('label');
+                newLabel.setAttribute('for', 'number_correct');
+                newLabel.setAttribute('id', 'number_correct_label');
+                newLabel.innerHTML = '# of Correct Answers:';
+                newInput.setAttribute('type', 'number');
+                newInput.setAttribute('id', 'number_correct_input');
+                newInput.setAttribute('name', 'number_correct_input');
+                newInput.setAttribute('oninput', 'correctNumberInput()');
+                if({{ is_submitted|lower }}){
+                    newInput.setAttribute('value', {{ number_of_correct_answers }});
+                }
+                document.getElementsByTagName('form')[0].insertBefore(newInput, document.getElementById('question_submit'));
+                document.getElementsByTagName('form')[0].insertBefore(newLabel, document.getElementById('number_correct_input'));
+                isSelected = true;
+            }
+        };
+
+        hideNumberCorrect = () => {
+            if (isSelected) {
+                document.getElementById('number_correct_input').remove();
+                document.getElementById('number_correct_label').remove();
+            }
+            isSelected = false;
+        };
+
+        correctNumberInput = () => {
+            input = document.getElementById('number_correct_input').value;
+            if (input.length > 1) {
+                document.getElementById('number_correct_input').value = input[1];
+            }
+            if (input > document.getElementById('number_of_answers_input').value) {
+                alert('You cannot have more correct answers than total answers.');
+                document.getElementById('number_correct_input').value = '';
+            }
+        };
+
+        onSubmitQuestion = () => {
+            if (isQuestion) {
+                question = document.getElementById('question_input').value;
+                numberOfAnswers = document.getElementById('number_of_answers_input').value;
+                radioElement = document.getElementsByName('multiple_correct_radio');
+                if (radioElement[0].checked) {
+                    numberOfCorrectAnswers = 1;
+                } else {
+                    numberOfCorrectAnswers = document.getElementById('number_correct_input').value;
+                    document.getElementById('number_correct_input').remove();
+                    document.getElementById('number_correct_label').remove();
+                }
+                document.getElementById('remove_elements').remove();
+
+                let question_input = document.createElement('input');
+                question_input.setAttribute('type', 'hidden');
+                question_input.setAttribute('name', 'question_input');
+                question_input.setAttribute('value', question);
+                document.getElementsByTagName('form')[0].insertBefore(question_input, document.getElementById('question_submit'));
+
+                let number_of_answers_input = document.createElement('input');
+                number_of_answers_input.setAttribute('type', 'hidden');
+                number_of_answers_input.setAttribute('name', 'number_of_answers_input');
+                number_of_answers_input.setAttribute('value', numberOfAnswers);
+                document.getElementsByTagName('form')[0].insertBefore(number_of_answers_input, document.getElementById('question_submit'));
+
+                let number_of_correct_answers_input = document.createElement('input');
+                number_of_correct_answers_input.setAttribute('type', 'hidden');
+                number_of_correct_answers_input.setAttribute('name', 'number_of_correct_answers_input');
+                number_of_correct_answers_input.setAttribute('value', numberOfCorrectAnswers);
+                document.getElementsByTagName('form')[0].insertBefore(number_of_correct_answers_input, document.getElementById('question_submit'));
+
+                for (let i = 0; i < numberOfCorrectAnswers; i++) {
+                    var addLabel = document.createElement('label');
+                    var addInput = document.createElement('input');
+
+                    addLabel.setAttribute('for', 'correct_answer' + i);
+                    addLabel.innerHTML = 'Correct Answer #' + (i + 1);
+                    addInput.setAttribute('type', 'text');
+                    addInput.setAttribute('name', 'correct_answer' + i);
+                    addInput.setAttribute('id', 'correct_answer' + i);
+                    if({{ is_submitted|lower }}){
+                        addInput.setAttribute('value', correctAnswers[i]);
+                    }
+
+                    document.getElementsByTagName('form')[0].insertBefore(addLabel, document.getElementById('question_submit'));
+                    document.getElementsByTagName('form')[0].insertBefore(addInput, document.getElementById('question_submit'));
+                }
+
+                for (let i = 0; i < numberOfAnswers - numberOfCorrectAnswers; i++) {
+                    var addLabel = document.createElement('label');
+                    var addInput = document.createElement('input');
+
+                    addLabel.setAttribute('for', 'incorrect_answer' + i);
+                    addLabel.innerHTML = 'Incorrect Answer #' + (i + 1);
+                    addInput.setAttribute('type', 'text');
+                    addInput.setAttribute('name', 'incorrect_answer' + i);
+                    addInput.setAttribute('id', 'incorrect_answer' + i);
+                    if({{ is_submitted|lower }}){
+                        addInput.setAttribute('value', incorrectAnswers[i]);
+                    }
+
+                    document.getElementsByTagName('form')[0].insertBefore(addLabel, document.getElementById('question_submit'));
+                    document.getElementsByTagName('form')[0].insertBefore(addInput, document.getElementById('question_submit'));
+                }
+                isQuestion = false;
+            } else {
+                document.getElementById('question_submit').setAttribute('type', 'submit');
+                document.getElementsByTagName('form')[0].setAttribute('method', 'post');
+            }
+        };
+    </script>
+    {% endblock %}
+    {% block body_block %}
+        <h1>Add Question</h1>
+        <button class="submit_button"><a href="{% url 'quiz:edit_quiz' quiz_id=quiz.name %}">Go Back</a></button>
+        {% if isError %}
+            <div class="error">
+                <h4>{{ error }}</h4>
+            </div>
+        {% endif %}
+        <div class="add_question_form_container">
+            <form method="dialog" action="{% url 'quiz:add_question' quiz_id=quiz.name %}">
+                {% csrf_token %}
+                <div id="remove_elements">
+                    <label for="question_input">Question:</label>
+                    <textarea name="question_input" id="question_input" rows="3">{{ question_text }}</textarea>
+                    <label for="number_of_answers_input"># of Answers:</label>
+                    <input type="number" name="number_of_answers_input" id="number_of_answers_input" maxlength="1" size="1"
+                        oninput="numberInput()" {% if is_submitted %}value="{{ number_of_answers }}"{% endif %}>
+                    <div class="add_quiz_radio_container">
+                        <label for="multiple_correct_radio" class="remove_me">More than 1 correct answer?</label>
+                        <input type="radio" name="multiple_correct_radio" value="0" onclick="hideNumberCorrect()" 
+                            {% if number_of_correct_answers <= 1 %}checked="checked"{% endif %}>No
+                        <input type="radio" name="multiple_correct_radio" value="1" onclick="addNumberCorrect()"
+                            {% if number_correct_answers > 1 %}checked="checked"{% endif %}>Yes
+                    </div>
+                </div>                
+                <button onclick="onSubmitQuestion()" class="submit_button" id="question_submit"><span>Submit</span></button>
+            </form>            
+        </div>
+    {% endblock %}

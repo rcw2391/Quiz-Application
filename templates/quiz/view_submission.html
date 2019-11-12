@@ -1,0 +1,176 @@
+{% extends 'base.html' %}
+    {% block body_block %}
+        <h4>Items in <span class="selected_incorrect">RED</span> you selected incorrectly.</h4>
+        <h4>Items in <span class="selected_correct">GREEN</span> are the correct answers.</h4>
+        <h4>For questions with more than 1 correct answer, items in <span class="not_selected_correct">YELLOW</span> are correct that you did not select.</h4>
+
+        <div id="quiz_display_container"></div>
+        <div id="next_button_container">
+            <button id="quiz_submit" type="button" class="submit_button" onclick="nextQuestion()"><span>Next Question</span></button>
+        </div>
+
+        <div class="view_submission_navigator">
+            <ul>
+                {% for item in detailed_questions_list %}
+                <li><a id="question_link{{ forloop.counter0 }}" onclick="displayQuestion({{ forloop.counter }})"
+                    class="{% if item.is_correct == 1 %}is_correct_link{% else %}is_incorrect_link{% endif %}">{{ forloop.counter }}</a></li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <script>
+            questionsArr = {{ detailed_questions_list|safe }};
+            console.log(questionsArr);
+
+            displayQuestion = (link) => {
+                let number = link - 1;
+                selectedQuestion = link;
+                let not_found = false;
+                let quizDisplay = document.getElementById('quiz_display_container');
+                while(quizDisplay.firstChild){
+                    quizDisplay.removeChild(quizDisplay.firstChild)
+                }
+
+                if(selectedQuestion - 1 === questionsArr.length){
+                    quiz_submit.setAttribute('style', 'visibility: hidden;');
+                    
+                    newHeader = document.createElement('h4');
+                    newHeader.innerHTML = 'End of quiz. Click the button below to return to the dashboard.'
+
+                    quizDisplay.appendChild(newHeader);
+
+                    newSubmitButton = document.createElement('button');
+                    newSubmitButton.setAttribute('type', 'button');
+                    newSubmitButton.setAttribute('class', 'submit_button');
+                    newSubmitButton.setAttribute('id', 'form_submit_button');
+                    newSubmitButton.setAttribute('onclick', 'backToDashboard()');
+                    newSubmitButton.innerHTML = '<span>Dashboard</span>';
+
+                    quizDisplay.appendChild(newSubmitButton);
+                } else {
+                    if(questionsArr[number].is_select_all === 0){
+                        isSelectAll = false;
+                    } else {
+                        isSelectAll = true;
+                    }
+                    
+                    if(document.getElementById('form_submit_button')){
+                        document.getElementById('form_submit_button').remove();
+                        quiz_submit.setAttribute('style', 'visibility: visible;');
+                    }
+                    
+                    newQuestionHeader = document.createElement('h4');
+                    newQuestionHeader.innerHTML = '#' + (number + 1);
+
+                    newQuestion = document.createElement('h5');
+                    newQuestion.setAttribute('id', 'question' + number);
+                    newQuestion.innerHTML = questionsArr[number].question;
+
+                    quizDisplay.appendChild(newQuestionHeader);
+                    quizDisplay.appendChild(newQuestion);
+
+                    if (isSelectAll){                    
+                        let radioDiv = document.createElement('div');
+                        radioDiv.setAttribute('class', 'quiz_radio_div');
+                        quizDisplay.appendChild(radioDiv);
+
+                        selectAll = document.createElement('h5');
+                        selectAll.innerHTML = 'Select all that apply.'
+                        radioDiv.appendChild(selectAll);
+
+                        let radioUL = document.createElement('ul');
+                        radioDiv.appendChild(radioUL);
+
+                        for(let i=0; i < questionsArr[number].answers.length; i++){
+                            newLabel = document.createElement('label');
+                            newLabel.setAttribute('for', 'answer' + i);
+                            newLabel.innerHTML = questionsArr[number].answers[i].answer;
+                            newInput = document.createElement('input');
+                            newInput.setAttribute('type', 'checkbox');
+                            newInput.setAttribute('id', 'answer' + i);
+                            newInput.setAttribute('name', 'answer');
+                            newInput.setAttribute('disabled', '');
+                            newInput.setAttribute('value', questionsArr[number].answers[i].answer);
+                            if(questionsArr[number].answers[i].correct === 1){
+                                newInput.setAttribute('checked', 'checked');
+                            }
+                            
+                            newLI = document.createElement('li');
+
+                            if(questionsArr[number].answers[i].correct === 1) {
+                                newLI.setAttribute('class', 'selected_correct');
+                            }
+
+                            if(questionsArr[number].answers[i].correct === 1){
+                                index = questionsArr[number].selected_answers.findIndex(x => {
+                                    return questionsArr[number].answers[i].answer === x.answer;
+                                });
+
+                                if(index < 0){
+                                    newLI.setAttribute('class', 'not_selected_correct');
+                                }
+                            }
+                            
+                            for(let k=0; k < questionsArr[number].selected_answers.length; k++){
+                               if(questionsArr[number].selected_answers.correct === 0){
+                                   newLI.setAttribute('class', 'selected_incorrect');
+                               }
+                            }
+
+                            radioUL.appendChild(newLI);
+                            newLI.appendChild(newInput);        
+                            newLI.appendChild(newLabel)
+                        }         
+                        
+                    } else {
+                        let radioDiv = document.createElement('div');
+                        radioDiv.setAttribute('class', 'quiz_radio_div');
+                        quizDisplay.appendChild(radioDiv);
+
+                        let radioUL = document.createElement('ul');
+                        radioDiv.appendChild(radioUL);
+
+                        for(let i=0; i < questionsArr[number].answers.length; i++){
+                            newLabel = document.createElement('label');
+                            newLabel.setAttribute('for', 'answer' + i);
+                            newLabel.innerHTML = questionsArr[number].answers[i].answer;
+                            newInput = document.createElement('input');
+                            newInput.setAttribute('type', 'radio');
+                            newInput.setAttribute('id', 'answer' + i);
+                            newInput.setAttribute('name', 'answer');
+                            newInput.setAttribute('disabled', '');
+                            newInput.setAttribute('value', questionsArr[number].answers[i].answer);
+                            if(questionsArr[number].answers[i].correct === 1){
+                                newInput.setAttribute('checked', 'checked');
+                            }
+                            
+                            newLI = document.createElement('li');
+                            
+                            if(questionsArr[number].answers[i].correct === 1) {
+                                newLI.setAttribute('class', 'selected_correct');
+                            }
+                            
+                            for(let k=0; k < questionsArr[number].selected_answers.length; k++){
+                                if((questionsArr[number].selected_answers[k].answer === questionsArr[number].answers[i].answer) &&
+                                        (questionsArr[number].answers[i].correct === 0)) {
+                                    newLI.setAttribute('class', 'selected_incorrect');
+                                }
+                            }
+
+                            radioUL.appendChild(newLI);
+                            newLI.appendChild(newInput);        
+                            newLI.appendChild(newLabel)
+                        }    
+                    }
+                }
+
+                
+            };
+
+            nextQuestion = () => {
+                displayQuestion(selectedQuestion+1);
+            }
+
+            displayQuestion(1);
+        </script>
+    {% endblock %}

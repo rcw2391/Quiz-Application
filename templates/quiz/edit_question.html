@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+    {%block body_block %}
+        <h1>Edit Question</h1>
+        <h4>Select the radio button for the question you would like to edit.
+            When you are finished click submit at the bottom of the page.</h4>
+        {% if is_successful_edit %}
+            <div class="success">
+                <h4>{{ successful_edit }}</h4>
+            </div>
+        {% endif %}
+        <button class="submit_button"><a href="{% url 'quiz:edit_quiz' quiz_id=quiz.name %}">Go Back</a></button>
+        <div class="delete_question_inputs">
+            <form name="edit_question_form" method="dialog">
+                {% for question in question_list %}
+                <label for="question{{ forloop.counter0 }}"><strong>{{ forloop.counter }}.</strong></label>
+                <input type="radio" name="question" value="{{ question.id }}"
+                    id="question{{ forloop.counter0 }}">{{ question.text }}<br>
+                <hr>
+                {% endfor %}
+                <button class="submit_button" onclick="onSubmit()"><span>Submit</span></button>
+            </form>
+        </div>
+        <script>
+            onSubmit = () => {
+                let radio_elements = document.getElementsByName('question');
+                let checked_element;
+                for(let i=0; i < radio_elements.length; i++){
+                    if (radio_elements[i].checked){
+                        checked_element = radio_elements[i].value;
+                    }
+                }
+                window.location.href = '/quiz/edit_question/' + checked_element;
+                // document.getElementById('submit_link').setAttribute('href', '/quiz/edit_question/' + checked_element);
+                // console.log(checked_element);
+            };
+        </script>
+    {% endblock %}

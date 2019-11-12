@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% block body_block %}
+    <h1>Add User</h1>
+    <button class="submit_button"><a href="{% url 'quiz:user_list_information' quiz_id=quiz.name %}">Go Back</a></button>
+    {% if isError %}
+    <div class="error">
+        <h4>{{ error }}</h4>
+    </div>
+    {% endif %}
+    {% if isSuccess %}
+    <div class="success">
+        <h4>{{ success }}</h4>
+    </div>
+    {% endif %}
+    <div class="login_form_container">
+        <form action="{% url 'quiz:add_user_to_quiz' quiz_id=quiz.name %}" method="post">
+            {% csrf_token %}
+            <label for="username_input">User:</label>
+            <input type="text" id="username_input" name="username_input">
+            <button class="submit_button" type="submit"><span>Submit</span></button>
+        </form>
+    </div>
+{% endblock %}
